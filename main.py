@@ -65,8 +65,8 @@ def webhook():
             abort(403, "消息解密失败")
         else:
             reply = "收到，思考中..."
+            ret, replay_encrypted = wxcpt.EncryptMsg(reply, nonce, timestamp)
             if message_dict.get('MsgType') == 'text':
-                ret, replay_encrypted = wxcpt.EncryptMsg(reply, nonce, timestamp)
                 url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={}&corpsecret={}".format(corp_id, corp_secret)
                 r = requests.get(url=url)
                 access_token = r.json()['access_token']
@@ -77,7 +77,7 @@ def webhook():
                     "msgtype": "text",
                     "agentid": agent_id,
                     "text": {
-                        "content": f"收到你的消息了，内容是： {message_dict.get('Content')}, 来自于ChatGPT的回复，待实现"
+                        "content": f"收到你的消息了，内容是：{message_dict.get('Content')}, 来自于ChatGPT的回复，待实现"
                     },
                     "safe": "0"
                 }
