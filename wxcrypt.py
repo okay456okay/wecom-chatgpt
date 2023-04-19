@@ -11,16 +11,16 @@ import random
 import hashlib
 import time
 import struct
-from Crypto.Cipher import AES
 import xml.etree.cElementTree as ET
 import socket
+from Crypto.Cipher import AES
 
 import ierror
 
 
 """
 关于Crypto.Cipher模块，ImportError: No module named 'Crypto'解决方案
-请到官方网站 https://www.dlitz.net/software/pycrypto/ 下载pycrypto。
+请到官方网站 https://www.dlitz.net/sofpip install pycryptotware/pycrypto/ 下载pycrypto。
 下载后，按照README中的“Installation”小节的提示进行pycrypto安装。
 """
 

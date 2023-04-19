@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+# coding=utf-8
+"""
+ChatGPT对话
+"""
+import json
+import os
+import random
+
+import requests
+from config import chatgpt_api_key, chatgpt_api_base
+
+messages_file = 'messages.json'
+
+
+class GPT(object):
+    def __init__(self, api_key, api_base='https://api.openai.com', proxies=None):
+        self.api_key = api_key
+        self.api_base = api_base
+        self.s = requests.session()
+        if proxies:
+            self.s.proxies = proxies
+        self.s.headers.update({
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}"
+        })
+
+    def chat(self, message, model='gpt-3.5-turbo', max_tokens=1500, history_messages=[]):
+        full_messages = history_messages
+        full_messages.append({"role": "user", "content": message})
+        # print(full_messages)
+        data = {
+            "model": model,
+            "messages": full_messages,
+            "temperature": 0.7,
+            "max_tokens": max_tokens,
+        }
+        r = self.s.post(
+            url=self.api_base + '/v1/chat/completions',
+            json=data
+        )
+        content = r.json()["choices"][0]["message"]["content"]
+        token_used = r.json()['usage']['total_tokens']
+        return content, token_used
+
+
+class WECOMCHAT(object):
+    def __init__(self, userid, gpt, system_prompt="", messages_file=messages_file):
+        self.gpt = gpt
+        self.messages_user = []
+        if os.path.exists(messages_file):
+            with open(messages_file, 'r') as f:
+                messages = json.load(f)
+                if userid in messages:
+                    self.messages_user = messages[userid]
+        else:
+            if system_prompt:
+                self.messages_user.append({
+                    "role": "system",
+                    "content": system_prompt
+                })
+
+    def chat(self, message):
+        reply, token_used = self.gpt.chat(message, history_messages=self.messages_user)
+        self.messages_user.append({"role": "assistant", "content": reply})
+        if token_used > 3000:
+            self.messages_user = self.messages_user[int(len(self.messages_user)):]
+        return reply
+
+
+if __name__ == '__main__':
+    # proxies = {
+    #     'http': 'http://127.0.0.1:1087',
+    #     'https': 'http://127.0.0.1:1087'
+    # }
+    # gpt = GPT(api_key="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", proxies=proxies)
+    # wecomgpt = WECOMCHAT('ZhuXiuLong', gpt, system_prompt="You are a code expert and product expert.")
+    gpt = GPT(api_key=chatgpt_api_key, api_base=chatgpt_api_base)
+    wecomgpt = WECOMCHAT('ZhuXiuLong', gpt)
+    print(wecomgpt.chat(f"您好，{random.randint(1, 100)}"))
+    print(wecomgpt.chat("我刚才说了什么?"))

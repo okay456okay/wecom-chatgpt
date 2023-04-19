@@ -12,6 +12,8 @@ from wxcrypt import WXBizMsgCrypt
 import requests
 from datetime import datetime
 import xmltodict
+from config import *
+from chatgpt import GPT, WECOMCHAT
 
 logging.basicConfig(level=logging.DEBUG,  # 控制台打印的日志级别
                     filename='wecom_chatgpt.log',
@@ -27,6 +29,7 @@ messages = {}
 
 app = Flask(__name__)
 
+gpt_instances = {}
 
 @app.route('/')
 def index():
@@ -35,11 +38,6 @@ def index():
 
 @app.route('/wecom/receive/v2', methods=['POST', 'GET'])
 def webhook():
-    token = "U6pfDj2kvxE4H9JnfxEZRr"
-    encoding_aes_key = "EckrwxVr6XcMHQbwTWxWe4bQ2nRInF0PNyF9rDaXjQK"
-    corp_id = "ww69bda534f8fda184"
-    corp_secret = "IGJMX3Ye71PfkGA0ETOF0WjMQd7Eivx1i34uzo8dFW0"
-    agent_id = 1000002
     wxcpt = WXBizMsgCrypt(token, encoding_aes_key, corp_id)
     arg = (request.args)
     msg_signature = arg["msg_signature"]
@@ -67,17 +65,25 @@ def webhook():
             reply = "收到，思考中..."
             ret, replay_encrypted = wxcpt.EncryptMsg(reply, nonce, timestamp)
             if message_dict.get('MsgType') == 'text':
-                url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={}&corpsecret={}".format(corp_id, corp_secret)
+                url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={}&corpsecret={}".format(corp_id, agent_secret)
                 r = requests.get(url=url)
                 access_token = r.json()['access_token']
                 # 回复消息
                 url = f"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={access_token}"
+                if userid not in gpt_instances:
+                    gpt = GPT(api_key=chatgpt_api_key, api_base=chatgpt_api_base)
+                    wecomgpt = WECOMCHAT(userid, gpt)
+                    gpt_instances[userid] = wecomgpt
+                else:
+                    wecomgpt = gpt_instances[userid]
+                content = message_dict.get('Content')
+                reply = wecomgpt.chat(content)
                 data = {
                     "touser": userid,
                     "msgtype": "text",
                     "agentid": agent_id,
                     "text": {
-                        "content": f"收到你的消息了，内容是：{message_dict.get('Content')}, 来自于ChatGPT的回复，待实现"
+                        "content": reply,
                     },
                     "safe": "0"
                 }
