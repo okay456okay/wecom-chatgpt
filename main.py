@@ -4,7 +4,7 @@
 企业微信服务
 """
 
-from flask import Flask, request
+from flask import Flask, request, abort
 import json
 import logging
 import traceback
@@ -31,25 +31,38 @@ def index():
     return '<h1>Flask Receiver App is Up!</h1>', 200
 
 
-@app.route('/wecom/receive/v2')
+@app.route('/wecom/receive/v2', methods = ['POST', 'GET'])
 def webhook():
     token = "U6pfDj2kvxE4H9JnfxEZRr"
     encoding_aes_key = "EckrwxVr6XcMHQbwTWxWe4bQ2nRInF0PNyF9rDaXjQK"
     corp_id = "ww69bda534f8fda184"
     corp_secret = "IGJMX3Ye71PfkGA0ETOF0WjMQd7Eivx1i34uzo8dFW0"
     agent_id = 1000002
+    wxcpt = WXBizMsgCrypt(token, encoding_aes_key, corp_id)
     arg = (request.args)
     msg_signature = arg["msg_signature"]
     timestamp = arg["timestamp"]
-    sVerifyNonce = arg["nonce"]
-    sVerifyEchoStr = arg["echostr"]
-    logging.DEBUG(f"{msg_signature}, {timestamp}, {sVerifyNonce}, {sVerifyEchoStr}")
-    wxcpt = WXBizMsgCrypt(token, encoding_aes_key, corp_id)
-    ret, sEchoStr = wxcpt.VerifyURL(msg_signature, timestamp, sVerifyNonce, sVerifyEchoStr)
-    if (ret != 0):
-        print("ERR: VerifyURL ret: " + str(ret))
-        sys.exit(1)
-    return sEchoStr
+    nonce = arg["nonce"]
+    # URL验证
+    if request.method == "GET":
+        echostr = arg["echostr"]
+        # logging.DEBUG(f"{msg_signature}, {timestamp}, {sVerifyNonce}, {sVerifyEchoStr}")
+        ret, echostr_decrypted = wxcpt.VerifyURL(msg_signature, timestamp, nonce, echostr)
+        if (ret != 0):
+            error_message = f"ERR: VerifyURL ret: {ret}"
+            logging.error(error_message)
+            abort(403, error_message)
+        return 200, echostr_decrypted
+    elif request.method == "POST":
+        ret, message = wxcpt.DecryptMsg(request.data, msg_signature, timestamp, nonce)
+        if ret != 0:
+            abort(403, "消息解密失败")
+        else:
+            reply = "收到，思考中..."
+            ret, replay_encrypted =  wxcpt.EncryptMsg(reply, nonce, timestamp)
+            return 200, replay_encrypted
+    else:
+        logging.warning(f"Not support method: {request.method}")
 
 
 if __name__ == '__main__':
