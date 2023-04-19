@@ -11,6 +11,7 @@ import traceback
 from wxcrypt import WXBizMsgCrypt
 import requests
 from datetime import datetime
+import xmltodict
 
 logging.basicConfig(level=logging.DEBUG,  # 控制台打印的日志级别
                     filename='wecom_chatgpt.log',
@@ -56,6 +57,9 @@ def webhook():
         return echostr_decrypted, 200
     elif request.method == "POST":
         ret, message = wxcpt.DecryptMsg(request.data, msg_signature, timestamp, nonce)
+        message_dict = xmltodict.parse(message.decode())['xml']
+        print(message_dict)
+        userid = message_dict.get('FromUserName')
         print(datetime.now())
         if ret != 0:
             abort(403, "消息解密失败")
@@ -66,9 +70,9 @@ def webhook():
             r = requests.get(url=url)
             access_token = r.json()['access_token']
             # 回复消息
-            url = "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={}".format(access_token)
+            url = f"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={access_token}"
             data = {
-                "touser": 'ZhuXiuLong',
+                "touser": userid,
                 "msgtype": "text",
                 "agentid": agent_id,
                 "text": {
@@ -77,7 +81,7 @@ def webhook():
                 "safe": "0"
             }
             print(datetime.now())
-            r = requests.post(url=url, data=json.dumps(data), verify=False)
+            r = requests.post(url=url, data=json.dumps(data))
             print(r.json())
             print(datetime.now())
             return replay_encrypted, 200
