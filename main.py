@@ -9,7 +9,7 @@ import json
 import logging
 import traceback
 from wxcrypt import WXBizMsgCrypt
-import sys
+import requests
 
 logging.basicConfig(level=logging.DEBUG,  # 控制台打印的日志级别
                     filename='wecom_chatgpt.log',
@@ -31,7 +31,7 @@ def index():
     return '<h1>Flask Receiver App is Up!</h1>', 200
 
 
-@app.route('/wecom/receive/v2', methods = ['POST', 'GET'])
+@app.route('/wecom/receive/v2', methods=['POST', 'GET'])
 def webhook():
     token = "U6pfDj2kvxE4H9JnfxEZRr"
     encoding_aes_key = "EckrwxVr6XcMHQbwTWxWe4bQ2nRInF0PNyF9rDaXjQK"
@@ -52,15 +52,32 @@ def webhook():
             error_message = f"ERR: VerifyURL ret: {ret}"
             logging.error(error_message)
             abort(403, error_message)
-        return 200, echostr_decrypted
+        return echostr_decrypted, 200
     elif request.method == "POST":
         ret, message = wxcpt.DecryptMsg(request.data, msg_signature, timestamp, nonce)
         if ret != 0:
             abort(403, "消息解密失败")
         else:
             reply = "收到，思考中..."
-            ret, replay_encrypted =  wxcpt.EncryptMsg(reply, nonce, timestamp)
-            return 200, replay_encrypted
+            ret, replay_encrypted = wxcpt.EncryptMsg(reply, nonce, timestamp)
+            url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={}&corpsecret={}".format(corp_id, corp_secret)
+            r = requests.get(url=url)
+            access_token = r.json()['access_token']
+            # 回复消息
+            url = "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={}".format(access_token)
+            data = {
+                "touser": 'ZhuXiuLong',
+                "msgtype": "text",
+                "agentid": agent_id,
+                "text": {
+                    "content": "来自于ChatGPT的回复，待实现"
+                },
+                "safe": "0"
+            }
+            r = requests.post(url=url, data=json.dumps(data), verify=False)
+            print(r.json())
+
+            return replay_encrypted, 200
     else:
         logging.warning(f"Not support method: {request.method}")
 
