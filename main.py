@@ -10,6 +10,7 @@ import logging
 import traceback
 from wxcrypt import WXBizMsgCrypt
 import requests
+from datetime import datetime
 
 logging.basicConfig(level=logging.DEBUG,  # 控制台打印的日志级别
                     filename='wecom_chatgpt.log',
@@ -55,6 +56,7 @@ def webhook():
         return echostr_decrypted, 200
     elif request.method == "POST":
         ret, message = wxcpt.DecryptMsg(request.data, msg_signature, timestamp, nonce)
+        print(datetime.now())
         if ret != 0:
             abort(403, "消息解密失败")
         else:
@@ -74,9 +76,10 @@ def webhook():
                 },
                 "safe": "0"
             }
+            print(datetime.now())
             r = requests.post(url=url, data=json.dumps(data), verify=False)
             print(r.json())
-
+            print(datetime.now())
             return replay_encrypted, 200
     else:
         logging.warning(f"Not support method: {request.method}")
