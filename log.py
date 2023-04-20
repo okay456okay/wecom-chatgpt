@@ -3,7 +3,7 @@ import logging
 from config import log_level
 
 class Logger(logging.Logger):
-    FORMAT = "[%(asctime)-15s] %(name)s %(levelname)s: %(message)s ( %(funcName)s(), %(filename)s:%(lineno)d )"
+    FORMAT = "[%(asctime)-15s] %(name)s %(levelname)s (%(funcName)s(), %(filename)s:%(lineno)d): %(message)s"
     def __init__(self, name=None, level=None, log_file=None, *args, **kwargs):
         if name is None:
             super().__init__("Logger", *args, **kwargs)

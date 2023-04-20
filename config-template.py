@@ -11,3 +11,4 @@ chatgpt_api_key = 'pk-VVsxGUhsbwfNQkOWYqkTxhVryrBcepKWjIfRZOpzTmKAmoaV'
 baidu_ocr_app_id = '32577953'
 baidu_ocr_api_key = 'llNjpb2PPGrmVhEzaCvGAyW1'
 baidu_ocr_api_secret = 'UW7W9ZFMFTh6evTS6Ae1neY8oyYNFCtW'
+log_level = 'DEBUG'  # INFO

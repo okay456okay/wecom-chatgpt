@@ -11,8 +11,12 @@ client = AipOcr(baidu_ocr_app_id, baidu_ocr_api_key, baidu_ocr_api_secret)
 
 
 def image2txt_ocr(image_url):
-    res_url = client.basicAccurateUrl(url=image_url)
-    logger.info(f"image2txt_ocr, image_url: {image_url}, res_url: {res_url}")
+    try:
+        res_url = client.basicAccurateUrl(url=image_url)
+        logger.info(f"image2txt_ocr, image_url: {image_url}, res_url: {res_url}")
+    except Exception as e:
+        logger.error(f"image2txt_ocr error, image_url: {image_url}, error: {e}")
+        return "OCR识别错误，请联系管理员，谢谢"
     return '\n'.join([i.get("words", '') for i in res_url.get("words_result", [])])
 
 
