@@ -9,6 +9,7 @@ import random
 
 import requests
 from config import chatgpt_api_key, chatgpt_api_base
+from log import logger
 
 messages_file = 'messages.json'
 
@@ -25,20 +26,18 @@ class GPT(object):
             "Authorization": f"Bearer {self.api_key}"
         })
 
-    def chat(self, message, model='gpt-3.5-turbo', max_tokens=1500, history_messages=[]):
+    def chat(self, message, model='gpt-3.5-turbo', max_tokens=3000, history_messages=[]):
         full_messages = history_messages
         full_messages.append({"role": "user", "content": message})
-        # print(full_messages)
         data = {
             "model": model,
             "messages": full_messages,
             "temperature": 0.7,
             "max_tokens": max_tokens,
         }
-        r = self.s.post(
-            url=self.api_base + '/v1/chat/completions',
-            json=data
-        )
+        url = self.api_base + '/v1/chat/completions'
+        r = self.s.post(url=url, json=data)
+        logger.info(f"chat completion, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
         content = r.json()["choices"][0]["message"]["content"]
         token_used = r.json()['usage']['total_tokens']
         return content, token_used
@@ -66,6 +65,14 @@ class WECOMCHAT(object):
         if token_used > 3000:
             self.messages_user = self.messages_user[int(len(self.messages_user)):]
         return reply
+
+    def append_messages(self, message):
+        self.messages_user.append(
+            {
+                "role": "user",
+                "content": message
+            }
+        )
 
 
 if __name__ == '__main__':

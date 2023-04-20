@@ -8,3 +8,6 @@ token = "U6pfDj2kvxE4H9JnfxEZRr"
 encoding_aes_key = "EckrwxVr6XcMHQbwTWxWe4bQ2nRInF0PNyF9rDaXjQK"
 chatgpt_api_base = 'https://api.pawan.krd'
 chatgpt_api_key = 'pk-VVsxGUhsbwfNQkOWYqkTxhVryrBcepKWjIfRZOpzTmKAmoaV'
+baidu_ocr_app_id = '32577953'
+baidu_ocr_api_key = 'llNjpb2PPGrmVhEzaCvGAyW1'
+baidu_ocr_api_secret = 'UW7W9ZFMFTh6evTS6Ae1neY8oyYNFCtW'
