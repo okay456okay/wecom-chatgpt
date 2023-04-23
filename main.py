@@ -3,12 +3,13 @@
 """
 企业微信服务
 """
+from time import sleep
 
 from flask import Flask, request, abort
 import logging
 from wxcrypt import WXBizMsgCrypt
 import xmltodict
-from config import corp_id, agent_id, agent_secret, token, encoding_aes_key, chatgpt_api_key, chatgpt_api_base
+from config import corp_id, agent_id, agent_secret, token, encoding_aes_key
 from chatgpt import GPT, WECOMCHAT
 from ocr import image2txt_ocr
 from wecom import WECOM_APP
@@ -53,8 +54,8 @@ def webhook():
         logger.info(f"接收到的企业微信消息内容：{message_dict}")
         userid = message_dict.get('FromUserName')
         if userid not in gpt_instances:
-            gpt = GPT(api_key=chatgpt_api_key, api_base=chatgpt_api_base)
-            wecomgpt = WECOMCHAT(userid, gpt)
+            gpt = GPT()
+            wecomgpt = WECOMCHAT('ZhuXiuLong', gpt)
             gpt_instances[userid] = wecomgpt
         else:
             wecomgpt = gpt_instances[userid]
@@ -83,8 +84,9 @@ def webhook():
                 gpt_reply = wecomgpt.chat(
                     "假设你是一个语文老师，精通写作。请对以下作文打分并做出评价，给出改进意见。作文内容为上面OCR识别内容。")
                 wecom_app.txt_send2user(userid, gpt_reply)
+                sleep(3)
                 gpt_reply = wecomgpt.chat(
-                    "请将上面的文章改写为100分作文。并指出改写前后的差异。")
+                    "请将上面的文章改写为优秀获奖高分作文。并指出改写前后的差异。")
                 wecom_app.txt_send2user(userid, gpt_reply)
             else:
                 gpt_reply = wecomgpt.chat(content)
