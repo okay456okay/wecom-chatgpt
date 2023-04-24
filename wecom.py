@@ -31,4 +31,7 @@ class WECOM_APP(object):
         }
         r = requests.post(url=url, json=data)
         logger.info(f"send message to user, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
-        print(r.json())
+        if r.json().get('errcode', 0) == 42001:
+            self.get_token()
+            r = requests.post(url=url, json=data)
+            logger.info(f"send message to user, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
