@@ -37,7 +37,7 @@ class GPT(object):
             "temperature": 0.7,
             "max_tokens": max_tokens,
         }
-        url = self.api_base + '/v1/chat/completions'
+        url = self.api_base + '/chat/completions'
         try:
             r = self.s.post(url=url, json=data)
             logger.info(f"chat completion, url: {url}, data: {data}, response: {r.status_code}:{r.text}")

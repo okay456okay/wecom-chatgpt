@@ -11,12 +11,12 @@ baidu_ocr_api_key = 'llNjpb2PPGrmVhEzaCvGAyW1'
 baidu_ocr_api_secret = 'UW7W9ZFMFTh6evTS6Ae1neY8oyYNFCtW'
 log_level = 'DEBUG'  # INFO
 # https://api2d.com/doc/doc
-openai_api_base = 'https://openai.api2d.net'
+openai_api_base = 'https://openai.api2d.net/v1'
 openai_api_key = 'fk198300-ggvcjDROuAD22IXOc0jolbDpZXMlcegr'
-# openai_api_base = 'https://api.pawan.krd'
+# openai_api_base = 'https://api.pawan.krd/v1'
 # openai_api_key = 'pk-VVsxGUhsbwfNQkOWYqkTxhVryrBcepKWjIfRZOpzTmKAmoaV' # discord ni126ni@gmail.com
 openai_proxy_enable = False
-# openai_api_base = 'https://api.openai.com'
+# openai_api_base = 'https://api.openai.com/v1'
 # openai_api_key = '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' # openai
 # openai_proxy_enable = True
 openai_proxy = {
