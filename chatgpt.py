@@ -28,7 +28,15 @@ class GPT(object):
             "Authorization": f"Bearer {self.api_key}"
         })
 
-    def chat(self, message, model='gpt-3.5-turbo', max_tokens=2000, history_messages=[]):
+    def chat(self, message, model='vicuna-13b', max_tokens=2000, history_messages=[]):
+        """
+
+        :param message:
+        :param model: gpt-3.5-turbo
+        :param max_tokens:
+        :param history_messages:
+        :return:
+        """
         full_messages = history_messages
         full_messages.append({"role": "user", "content": message})
         data = {

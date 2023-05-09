@@ -37,7 +37,7 @@ def webhook():
     msg_signature = arg["msg_signature"]
     timestamp = arg["timestamp"]
     nonce = arg["nonce"]
-    logger.info(f"{arg}")
+    logger.info(f"request.args: {arg}")
     # URL验证
     if request.method == "GET":
         echostr = arg["echostr"]
