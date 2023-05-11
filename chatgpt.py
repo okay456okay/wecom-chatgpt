@@ -54,11 +54,9 @@ class GPT(object):
                 logger.error(f"get chatgpt reply error: {error}")
                 if error.find("This model's maximum context length") >= 0:
                     data['messages'] = full_messages[int(len(full_messages) / 2):]
-                    sleep(1)
                     r = self.s.post(url=url, json=data)
                     logger.info(f"chat completion, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
                 elif error.find("Invalid request") >= 0:
-                    sleep(1)
                     r = self.s.post(url=url, json=data)
                     logger.info(f"chat completion, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
             content = r.json()["choices"][0]["message"]["content"]
