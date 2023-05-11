@@ -3,6 +3,7 @@
 """
 企业微信服务
 """
+import os.path
 from time import sleep
 
 from flask import Flask, request, abort
@@ -14,6 +15,8 @@ from chatgpt import GPT, WECOMCHAT
 from ocr import image2txt_ocr
 from wecom import WECOM_APP
 from log import logger
+import pickle
+import signal
 
 # 存储所有用户的消息记录
 messages = {}
@@ -23,6 +26,7 @@ app = Flask(__name__)
 gpt_instances = {}
 msg_ids = []
 wecom_app = WECOM_APP(corp_id, agent_id, agent_secret)
+gpt_session_file = 'gpt_instance.session'
 
 
 @app.route('/')
@@ -55,7 +59,7 @@ def webhook():
         userid = message_dict.get('FromUserName')
         if userid not in gpt_instances:
             gpt = GPT()
-            wecomgpt = WECOMCHAT('ZhuXiuLong', gpt)
+            wecomgpt = WECOMCHAT(userid, gpt)
             gpt_instances[userid] = wecomgpt
         else:
             wecomgpt = gpt_instances[userid]
@@ -66,7 +70,7 @@ def webhook():
         ret, replay_encrypted = wxcpt.EncryptMsg(reply, nonce, timestamp)
         msg_type = message_dict.get('MsgType', '')
         # 消息去重处理
-        if msg_type in ['image', 'text']:
+        if msg_type in ['image', 'text', 'event']:
             msg_id = message_dict.get('MsgId', '')
             if msg_id in msg_ids:
                 return '重复消息', 200
@@ -97,6 +101,25 @@ def webhook():
     else:
         logging.warning(f"Not support method: {request.method}")
 
+def save_gpt_session(signum, frame):
+    global gpt_instances
+    with open(gpt_session_file, 'wb') as f:
+        if gpt_instances:
+            pickle.dump(gpt_instances, f)
+            logger.info(f"成功保存gpt会话, 会话内容： {gpt_instances.keys()}")
+    exit(0)
+
+
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, save_gpt_session)
+    signal.signal(signal.SIGHUP, save_gpt_session)
+    signal.signal(signal.SIGTERM, save_gpt_session)
+    try:
+        if os.path.exists(gpt_session_file):
+            with open(gpt_session_file, 'rb') as f:
+                gpt_instances = pickle.load(f)
+                logger.info(f"成功加载gpt会话， 内容：{gpt_instances.keys()}")
+    except Exception as e:
+        logger.error(f"加载gpt会话失败，错误内容：{e}")
     app.run(host='0.0.0.0', port=8088, debug=True)

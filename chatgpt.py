@@ -9,7 +9,7 @@ import random
 from time import sleep
 
 import requests
-from config import openai_api_key, openai_api_base, openai_proxy, openai_proxy_enable
+from config import openai_api_key, openai_api_base, openai_proxy, openai_proxy_enable, admin_user
 from log import logger
 
 messages_file = 'messages.json'
@@ -28,7 +28,7 @@ class GPT(object):
             "Authorization": f"Bearer {self.api_key}"
         })
 
-    def chat(self, message, model='vicuna-13b', max_tokens=2000, history_messages=[]):
+    def chat(self, message, model='gpt-3.5-turbo', max_tokens=1000, history_messages=[]):
         """
 
         :param message:
@@ -42,7 +42,7 @@ class GPT(object):
         data = {
             "model": model,
             "messages": full_messages,
-            "temperature": 0.7,
+            "temperature": 0.9,
             "max_tokens": max_tokens,
         }
         url = self.api_base + '/chat/completions'
@@ -66,7 +66,7 @@ class GPT(object):
         except Exception as e:
             logger.error(f"get chatgpt reply error: {e}")
             token_used = 0
-            content = "网络错误，请联系管理员处理，谢谢"
+            content = f"网络错误，请联系 {admin_user} 处理，谢谢"
         return content, token_used
 
 

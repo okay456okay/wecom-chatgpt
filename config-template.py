@@ -23,3 +23,4 @@ openai_proxy = {
     'http': 'http://127.0.0.1:1087',
     'https': 'http://127.0.0.1:1087'
 }
+admin_user = '管理员'
