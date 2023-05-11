@@ -4,7 +4,6 @@
 企业微信服务
 """
 import os.path
-from time import sleep
 
 from flask import Flask, request, abort
 import logging
@@ -89,7 +88,6 @@ def webhook():
                     # "假设你是一个优秀语文老师，精通写作。请对以上作文草稿打分并做出评价，给出改进意见。作文草稿内容为上面OCR识别内容。")
                 gpt_reply = wecomgpt.chat(f"假设你是一个精通写作的优秀语文老师,根据作文草稿重写一篇100分的优秀满分作文，要求主题突出、内容充实、条理清晰、层次分明、有文采、用词丰富。并为作文起一个最好的标题。作文草稿为上面OCR识别内容。")
                 wecom_app.txt_send2user(userid, gpt_reply)
-                sleep(3)
                 # gpt_reply = wecomgpt.chat(
                 #     "请将上面的文章改写为优秀获奖高分作文。并指出改写前后的差异。")
                 gpt_reply = wecomgpt.chat(f"对改写前后的作文打分(0-100分)并做出详细评价，给出写作改进意见。")
