@@ -4,13 +4,14 @@
 企业微信服务
 """
 import os.path
+from time import sleep
 
 from flask import Flask, request, abort
 import logging
 from wxcrypt import WXBizMsgCrypt
 import xmltodict
 from config import corp_id, agent_id, agent_secret, token, encoding_aes_key
-from chatgpt import GPT, WECOMCHAT
+from chatgpt import WECOMCHAT
 from ocr import image2txt_ocr
 from wecom import WECOM_APP
 from log import logger
@@ -57,8 +58,7 @@ def webhook():
         logger.info(f"接收到的企业微信消息内容：{message_dict}")
         userid = message_dict.get('FromUserName')
         if userid not in gpt_instances:
-            gpt = GPT()
-            wecomgpt = WECOMCHAT(userid, gpt)
+            wecomgpt = WECOMCHAT()
             gpt_instances[userid] = wecomgpt
         else:
             wecomgpt = gpt_instances[userid]
@@ -85,8 +85,9 @@ def webhook():
             content = message_dict.get('Content')
             if content.find('批改作文') >= 0 or content.find('作文批改') >= 0:
                 # gpt_reply = wecomgpt.chat(
-                    # "假设你是一个优秀语文老师，精通写作。请对以上作文草稿打分并做出评价，给出改进意见。作文草稿内容为上面OCR识别内容。")
-                gpt_reply = wecomgpt.chat(f"假设你是一个精通写作的优秀语文老师,根据作文草稿重写一篇100分的优秀满分作文，要求主题突出、内容充实、条理清晰、层次分明、有文采、用词丰富。并为作文起一个最好的标题。作文草稿为上面OCR识别内容。")
+                # "假设你是一个优秀语文老师，精通写作。请对以上作文草稿打分并做出评价，给出改进意见。作文草稿内容为上面OCR识别内容。")
+                gpt_reply = wecomgpt.chat(
+                    f"假设你是一个精通写作的优秀语文老师,根据作文草稿重写一篇100分的优秀满分作文，要求主题突出、内容充实、条理清晰、层次分明、有文采、用词丰富。并为作文起一个最好的标题。作文草稿为上面OCR识别内容。")
                 wecom_app.txt_send2user(userid, gpt_reply)
                 # gpt_reply = wecomgpt.chat(
                 #     "请将上面的文章改写为优秀获奖高分作文。并指出改写前后的差异。")
@@ -99,14 +100,14 @@ def webhook():
     else:
         logging.warning(f"Not support method: {request.method}")
 
-def save_gpt_session(signum, frame):
-    global gpt_instances
-    with open(gpt_session_file, 'wb') as f:
-        if gpt_instances:
-            pickle.dump(gpt_instances, f)
-            logger.info(f"成功保存gpt会话, 会话内容： {gpt_instances.keys()}")
-    exit(0)
 
+def save_gpt_session(signum, frame):
+    f = open(gpt_session_file, 'wb')
+    if gpt_instances:
+        pickle.dump(gpt_instances, f)
+        logger.info(f"成功保存gpt会话, 会话内容：{gpt_instances.keys()}")
+    f.close()
+    exit(0)
 
 
 if __name__ == '__main__':
@@ -115,9 +116,14 @@ if __name__ == '__main__':
     signal.signal(signal.SIGTERM, save_gpt_session)
     try:
         if os.path.exists(gpt_session_file):
-            with open(gpt_session_file, 'rb') as f:
+            f = open(gpt_session_file, 'rb')
+            try:
                 gpt_instances = pickle.load(f)
                 logger.info(f"成功加载gpt会话， 内容：{gpt_instances.keys()}")
+            except Exception as e:
+                pass
+            finally:
+                f.close()
     except Exception as e:
         logger.error(f"加载gpt会话失败，错误内容：{e}")
-    app.run(host='0.0.0.0', port=8088, debug=True)
+    app.run(host='0.0.0.0', port=8088, debug=False, use_reloader=False)

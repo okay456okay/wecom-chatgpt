@@ -12,7 +12,6 @@ import requests
 from config import openai_api_key, openai_api_base, openai_proxy, openai_proxy_enable, admin_user
 from log import logger
 
-messages_file = 'messages.json'
 
 
 class GPT(object):
@@ -28,7 +27,7 @@ class GPT(object):
             "Authorization": f"Bearer {self.api_key}"
         })
 
-    def chat(self, message, model='gpt-3.5-turbo', max_tokens=1000, history_messages=[]):
+    def chat(self, messages, model='gpt-3.5-turbo', max_tokens=1000):
         """
 
         :param message:
@@ -37,11 +36,9 @@ class GPT(object):
         :param history_messages:
         :return:
         """
-        full_messages = history_messages
-        full_messages.append({"role": "user", "content": message})
         data = {
             "model": model,
-            "messages": full_messages,
+            "messages": messages,
             "temperature": 0.9,
             "max_tokens": max_tokens,
         }
@@ -53,7 +50,7 @@ class GPT(object):
                 error = r.json()['error']['message']
                 logger.error(f"get chatgpt reply error: {error}")
                 if error.find("This model's maximum context length") >= 0:
-                    data['messages'] = full_messages[int(len(full_messages) / 2):]
+                    data['messages'] = messages[int(len(messages) / 2):]
                     r = self.s.post(url=url, json=data)
                     logger.info(f"chat completion, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
                 elif error.find("Invalid request") >= 0:
@@ -69,28 +66,23 @@ class GPT(object):
 
 
 class WECOMCHAT(object):
-    def __init__(self, userid, gpt, system_prompt="", messages_file=messages_file):
-        self.gpt = gpt
-        self.messages_user = []
-        if os.path.exists(messages_file):
-            with open(messages_file, 'r') as f:
-                messages = json.load(f)
-                if userid in messages:
-                    self.messages_user = messages[userid]
-        else:
-            if system_prompt:
-                self.messages_user.append({
-                    "role": "system",
-                    "content": system_prompt
-                })
+    def __init__(self, system_prompt=""):
+        self.gpt = GPT()
+        self.messages = []
+        if system_prompt:
+            self.messages.append({
+                "role": "system",
+                "content": system_prompt
+            })
 
     def chat(self, message):
-        reply, token_used = self.gpt.chat(message, history_messages=self.messages_user)
-        self.messages_user.append({"role": "assistant", "content": reply})
+        self.messages.append({"role": "user", "content": message})
+        reply, token_used = self.gpt.chat(self.messages)
+        self.messages.append({"role": "assistant", "content": reply})
         return reply
 
     def append_messages(self, message):
-        self.messages_user.append(
+        self.messages.append(
             {
                 "role": "user",
                 "content": message
@@ -99,10 +91,9 @@ class WECOMCHAT(object):
 
 
 if __name__ == '__main__':
-    gpt = GPT()
     # wecomgpt = WECOMCHAT('ZhuXiuLong', gpt, system_prompt="You are a code expert and product expert.")
     # gpt = GPT(api_key=chatgpt_api_key, api_base=chatgpt_api_base)
-    wecomgpt = WECOMCHAT('ZhuXiuLong', gpt)
+    wecomgpt = WECOMCHAT()
     # print(wecomgpt.chat(f"您好，{random.randint(1, 100)}"))
     # print(wecomgpt.chat("我刚才说了什么?"))
     ocr_text = """让你炫耀\n昨天一同学新买了苹果X,总是在群里炫耀,说新手机如何如何好,
