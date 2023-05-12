@@ -27,7 +27,7 @@ class GPT(object):
             "Authorization": f"Bearer {self.api_key}"
         })
 
-    def chat(self, messages, model='gpt-3.5-turbo', max_tokens=1000):
+    def chat(self, messages, model='gpt-3.5-turbo', max_tokens=1000, temperature=0.9):
         """
 
         :param message:
@@ -39,7 +39,7 @@ class GPT(object):
         data = {
             "model": model,
             "messages": messages,
-            "temperature": 0.9,
+            "temperature": temperature,
             "max_tokens": max_tokens,
         }
         url = self.api_base + '/chat/completions'
@@ -51,6 +51,8 @@ class GPT(object):
                 logger.error(f"get chatgpt reply error: {error}")
                 if error.find("This model's maximum context length") >= 0:
                     data['messages'] = messages[int(len(messages) / 2):]
+                    if messages[0].get('role', '') == 'system':
+                        data['messages'].insert(0, messages[0])
                     r = self.s.post(url=url, json=data)
                     logger.info(f"chat completion, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
                 elif error.find("Invalid request") >= 0:
@@ -75,9 +77,9 @@ class WECOMCHAT(object):
                 "content": system_prompt
             })
 
-    def chat(self, message):
+    def chat(self, message, temperature=0.9):
         self.messages.append({"role": "user", "content": message})
-        reply, token_used = self.gpt.chat(self.messages)
+        reply, token_used = self.gpt.chat(self.messages, temperature=temperature)
         self.messages.append({"role": "assistant", "content": reply})
         return reply
 
