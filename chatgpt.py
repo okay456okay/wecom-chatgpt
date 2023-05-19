@@ -9,14 +9,15 @@ import random
 from time import sleep
 
 import requests
-from config import openai_api_key, openai_api_base, openai_proxy, openai_proxy_enable, admin_user
+from config import OPENAI_API_KEY, OPENAI_API_BASE, OPENAI_PROXY, OPENAI_PROXY_ENABLE, ADMIN_USER, SAVE_CHAT_HISTORY, \
+    ERROR_MESSAGE, LLM_TEMPERATURE, LLM_MODEL, LLM_MAX_TOKENS, LLM_SYSTEM_PROMPT
 from log import logger
 
 
 
 class GPT(object):
-    def __init__(self, api_key=openai_api_key, api_base=openai_api_base, proxies=openai_proxy,
-                 proxy_enabled=openai_proxy_enable):
+    def __init__(self, api_key=OPENAI_API_KEY, api_base=OPENAI_API_BASE, proxies=OPENAI_PROXY,
+                 proxy_enabled=OPENAI_PROXY_ENABLE):
         self.api_key = api_key
         self.api_base = api_base
         self.s = requests.session()
@@ -27,7 +28,7 @@ class GPT(object):
             "Authorization": f"Bearer {self.api_key}"
         })
 
-    def chat(self, messages, model='gpt-3.5-turbo', max_tokens=1000, temperature=0.9):
+    def chat(self, messages, model=LLM_MODEL, max_tokens=LLM_MAX_TOKENS, temperature=LLM_TEMPERATURE):
         """
 
         :param message:
@@ -63,12 +64,12 @@ class GPT(object):
         except Exception as e:
             logger.error(f"get chatgpt reply error: {e}")
             token_used = 0
-            content = f"网络错误，请联系 {admin_user} 处理，谢谢"
+            content = ERROR_MESSAGE
         return content, token_used
 
 
 class WECOMCHAT(object):
-    def __init__(self, system_prompt=""):
+    def __init__(self, system_prompt=LLM_SYSTEM_PROMPT):
         self.gpt = GPT()
         self.messages = []
         if system_prompt:
@@ -77,10 +78,13 @@ class WECOMCHAT(object):
                 "content": system_prompt
             })
 
-    def chat(self, message, temperature=0.9):
+    def chat(self, message, temperature=LLM_TEMPERATURE, save_history=SAVE_CHAT_HISTORY):
         self.messages.append({"role": "user", "content": message})
         reply, token_used = self.gpt.chat(self.messages, temperature=temperature)
-        self.messages.append({"role": "assistant", "content": reply})
+        if save_history:
+            self.messages.append({"role": "assistant", "content": reply})
+        else:
+            self.messages.pop()
         return reply
 
     def append_messages(self, message):

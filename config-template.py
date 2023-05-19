@@ -24,3 +24,5 @@ openai_proxy = {
     'https': 'http://127.0.0.1:1087'
 }
 admin_user = '管理员'
+welcome_message = """欢迎使用GPT智能助手"""
+flask_port = 8088

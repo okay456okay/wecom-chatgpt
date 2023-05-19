@@ -1,6 +1,6 @@
 # Python Modules
 import logging
-from config import log_level
+from config import LOG_LEVEL
 
 class Logger(logging.Logger):
     FORMAT = "[%(asctime)-15s] %(name)s %(levelname)s (%(funcName)s(), %(filename)s:%(lineno)d): %(message)s"
@@ -28,9 +28,9 @@ class Logger(logging.Logger):
         console_handler.setFormatter(fomatter)
         self.addHandler(console_handler)
 
-if log_level == 'DEBUG':
+if LOG_LEVEL == 'DEBUG':
     level = logging.DEBUG
-elif log_level == 'INFO':
+elif LOG_LEVEL == 'INFO':
     log_level = logging.INFO
 
 logger = Logger(name="wecomgpt", level=level, log_file='wecomgpt.log')

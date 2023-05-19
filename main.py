@@ -10,7 +10,7 @@ from flask import Flask, request, abort
 import logging
 from wxcrypt import WXBizMsgCrypt
 import xmltodict
-from config import corp_id, agent_id, agent_secret, token, encoding_aes_key
+from config import CORP_ID, AGENT_ID, AGENT_SECRET, TOKEN, ENCODING_AES_KEY, WELCOME_MESSAGE, FLASK_PORT, SAVE_CHAT_HISTORY, OCR_ENABLE
 from chatgpt import WECOMCHAT
 from ocr import image2txt_ocr
 from wecom import WECOM_APP
@@ -25,7 +25,7 @@ app = Flask(__name__)
 
 gpt_instances = {}
 msg_ids = []
-wecom_app = WECOM_APP(corp_id, agent_id, agent_secret)
+wecom_app = WECOM_APP(CORP_ID, AGENT_ID, AGENT_SECRET)
 gpt_session_file = 'gpt_instance.session'
 
 
@@ -36,7 +36,7 @@ def index():
 
 @app.route('/wecom/receive/v2', methods=['POST', 'GET'])
 def webhook():
-    wxcpt = WXBizMsgCrypt(token, encoding_aes_key, corp_id)
+    wxcpt = WXBizMsgCrypt(TOKEN, ENCODING_AES_KEY, CORP_ID)
     arg = (request.args)
     msg_signature = arg["msg_signature"]
     timestamp = arg["timestamp"]
@@ -68,6 +68,7 @@ def webhook():
         reply = "收到，思考中..."
         ret, replay_encrypted = wxcpt.EncryptMsg(reply, nonce, timestamp)
         msg_type = message_dict.get('MsgType', '')
+        msg_event = message_dict.get('Event', '')
         # 消息去重处理
         if msg_type in ['image', 'text', 'event']:
             msg_id = message_dict.get('MsgId', '')
@@ -76,11 +77,20 @@ def webhook():
             else:
                 msg_ids.append(msg_id)
         if msg_type == 'image':
-            image_url = message_dict.get('PicUrl')
-            ocr_text = image2txt_ocr(image_url)
-            wecomgpt.append_messages(f"OCR识别内容: {ocr_text}")
-            wecom_app.txt_send2user(userid, f"OCR识别内容为： {ocr_text}")
-        if msg_type == 'text':
+            if OCR_ENABLE:
+                image_url = message_dict.get('PicUrl')
+                ret, ocr_text = image2txt_ocr(image_url)
+                if ret:
+                    wecomgpt.append_messages(f"OCR识别内容: {ocr_text}")
+                    wecom_app.txt_send2user(userid, f"OCR识别内容为： {ocr_text}")
+                else:
+                    wecomgpt.append_messages(f"OCR识别错误，报错内容: {ocr_text}")
+            else:
+                wecom_app.txt_send2user(userid, "目前不支持图片内容，仅支持文字发送，谢谢。")
+        elif msg_type == 'event' and msg_event == 'enter_agent':
+            # 进入会话
+            wecom_app.txt_send2user(userid, WELCOME_MESSAGE)
+        elif msg_type == 'text':
             # 回复消息
             content = message_dict.get('Content')
             if content.find('批改作文') >= 0 or content.find('作文批改') >= 0:
@@ -111,19 +121,22 @@ def save_gpt_session(signum, frame):
 
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, save_gpt_session)
-    signal.signal(signal.SIGHUP, save_gpt_session)
-    signal.signal(signal.SIGTERM, save_gpt_session)
-    try:
-        if os.path.exists(gpt_session_file):
-            f = open(gpt_session_file, 'rb')
-            try:
-                gpt_instances = pickle.load(f)
-                logger.info(f"成功加载gpt会话， 内容：{gpt_instances.keys()}")
-            except Exception as e:
-                pass
-            finally:
-                f.close()
-    except Exception as e:
-        logger.error(f"加载gpt会话失败，错误内容：{e}")
-    app.run(host='0.0.0.0', port=8088, debug=False, use_reloader=False)
+    if SAVE_CHAT_HISTORY:
+        signal.signal(signal.SIGINT, save_gpt_session)
+        signal.signal(signal.SIGHUP, save_gpt_session)
+        signal.signal(signal.SIGTERM, save_gpt_session)
+        # signal.signal(signal.SIGKILL, save_gpt_session)
+        signal.signal(signal.SIGQUIT, save_gpt_session)
+        try:
+            if os.path.exists(gpt_session_file):
+                f = open(gpt_session_file, 'rb')
+                try:
+                    gpt_instances = pickle.load(f)
+                    logger.info(f"成功加载gpt会话， 内容：{gpt_instances.keys()}")
+                except Exception as e:
+                    pass
+                finally:
+                    f.close()
+        except Exception as e:
+            logger.error(f"加载gpt会话失败，错误内容：{e}")
+    app.run(host='0.0.0.0', port=FLASK_PORT, debug=False, use_reloader=False)

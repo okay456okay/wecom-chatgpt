@@ -4,10 +4,10 @@
 
 
 from aip import AipOcr
-from config import baidu_ocr_app_id,baidu_ocr_api_key,baidu_ocr_api_secret
+from config import BAIDU_OCR_APP_ID,BAIDU_OCR_API_KEY,BAIDU_OCR_API_SECRET
 from log import logger
 
-client = AipOcr(baidu_ocr_app_id, baidu_ocr_api_key, baidu_ocr_api_secret)
+client = AipOcr(BAIDU_OCR_APP_ID, BAIDU_OCR_API_KEY, BAIDU_OCR_API_SECRET)
 
 
 def image2txt_ocr(image_url):
@@ -16,8 +16,8 @@ def image2txt_ocr(image_url):
         logger.info(f"image2txt_ocr, image_url: {image_url}, res_url: {res_url}")
     except Exception as e:
         logger.error(f"image2txt_ocr error, image_url: {image_url}, error: {e}")
-        return "OCR识别错误，请联系管理员，谢谢"
-    return '\n'.join([i.get("words", '') for i in res_url.get("words_result", [])])
+        return False, "OCR识别错误，请联系管理员，谢谢"
+    return True, '\n'.join([i.get("words", '') for i in res_url.get("words_result", [])])
 
 
 if __name__ == '__main__':
