@@ -39,7 +39,7 @@ class GPT(object):
         """
         data = {
             "model": model,
-            "messages": messages,
+            "messages": messages[:],
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
@@ -49,23 +49,24 @@ class GPT(object):
             logger.info(f"chat completion, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
             if 'error' in r.json():
                 error = r.json()['error']['message']
-                logger.error(f"get chatgpt reply error: {error}")
-                if error.find("This model's maximum context length") >= 0:
-                    data['messages'] = messages[int(len(messages) / 2):]
+                error_code = r.json().get('error', {}).get('code', '')
+                logger.error(f"第一次请求大模型{LLM_MODEL}报错，报错内容: {error}， 报错代码：{error_code}")
+                if error_code == 'context_length_exceeded':
+                    data['messages'] = messages[int(len(messages) / 4):]
                     if messages[0].get('role', '') == 'system':
                         data['messages'].insert(0, messages[0])
-                    r = self.s.post(url=url, json=data)
-                    logger.info(f"chat completion, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
-                elif error.find("Invalid request") >= 0:
-                    r = self.s.post(url=url, json=data)
-                    logger.info(f"chat completion, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
+                    logger.info(f"历史消息记录超长了，截断前： {len(messages)}")
+                    messages = data['messages']
+                    logger.info(f"历史消息记录超长了，截断后： {len(messages)}")
+                r = self.s.post(url=url, json=data)
+                logger.info(f"报错后截短历史消息重新请求 {LLM_MODEL}，chat completion, url: {url}, data: {data}, response: {r.status_code}:{r.text}")
             content = r.json()["choices"][0]["message"]["content"]
             token_used = r.json()['usage']['total_tokens']
         except Exception as e:
             logger.error(f"get chatgpt reply error: {e}")
             token_used = 0
             content = ERROR_MESSAGE
-        return content, token_used
+        return content, token_used, messages
 
 
 class WECOMCHAT(object):
@@ -80,7 +81,7 @@ class WECOMCHAT(object):
 
     def chat(self, message, temperature=LLM_TEMPERATURE, save_history=SAVE_CHAT_HISTORY):
         self.messages.append({"role": "user", "content": message})
-        reply, token_used = self.gpt.chat(self.messages, temperature=temperature)
+        reply, token_used, self.messages = self.gpt.chat(self.messages, temperature=temperature)
         if save_history:
             self.messages.append({"role": "assistant", "content": reply})
         else:
