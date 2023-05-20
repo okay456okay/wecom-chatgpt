@@ -52,7 +52,7 @@ class GPT(object):
                 error_code = r.json().get('error', {}).get('code', '')
                 logger.error(f"第一次请求大模型{LLM_MODEL}报错，报错内容: {error}， 报错代码：{error_code}")
                 if error_code == 'context_length_exceeded':
-                    data['messages'] = messages[int(len(messages) / 4):]
+                    data['messages'] = messages[int(len(messages) / 4 * 3):]
                     if messages[0].get('role', '') == 'system':
                         data['messages'].insert(0, messages[0])
                     logger.info(f"历史消息记录超长了，截断前： {len(messages)}")
