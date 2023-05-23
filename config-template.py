@@ -11,21 +11,17 @@ BAIDU_OCR_APP_ID = '32553'
 BAIDU_OCR_API_KEY = 'llNjpb2PPhEzaCvGAyW1'
 BAIDU_OCR_API_SECRET = 'UW7W9Z6Ae1neY8oyYNFCtW'
 LOG_LEVEL = 'DEBUG'  # INFO
-# https://api2d.com/doc/doc
-OPENAI_API_BASE = 'https://openai.api2d.net/v1'
-OPENAI_API_KEY = 'fk198300-ggvcjDROuA0jolbDpZXMlcegr'
-# openai_api_base = 'https://api.pawan.krd/v1'
-# openai_api_key = 'pk-VVsxGUhsbhVryrBcepKWjIfRZOpzTmKAmoaV' # discord ni126ni@gmail.com
-OPENAI_PROXY_ENABLE = False
-# openai_api_base = 'https://api.openai.com/v1'
-# openai_api_key = 'sk-toKUib5xiW3BlbkFJKx6aXIQv3NkFjhRP3rdc' # openai
+openai_api_base = 'https://api.openai.com/v1'
+openai_api_key = 'sk-toKUib5xiW3BlbkFJKx6aXIQv3NkFjhRP3rdc' # openai
 # openai_proxy_enable = True
+OPENAI_PROXY_ENABLE = False
 OPENAI_PROXY = {
     'http': 'http://127.0.0.1:1087',
     'https': 'http://127.0.0.1:1087'
 }
 ADMIN_USER = '管理员'
 WELCOME_MESSAGE = """欢迎使用GPT智能助手"""
+ERROR_MESSAGE = f"网络错误，请联系 {ADMIN_USER} 处理，谢谢"
 FLASK_PORT = 8088
 LLM_MAX_TOKENS = 1024
 LLM_MODEL = 'gpt-3.5-turbo'
