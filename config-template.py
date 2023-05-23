@@ -11,6 +11,11 @@ BAIDU_OCR_APP_ID = '32553'
 BAIDU_OCR_API_KEY = 'llNjpb2PPhEzaCvGAyW1'
 BAIDU_OCR_API_SECRET = 'UW7W9Z6Ae1neY8oyYNFCtW'
 LOG_LEVEL = 'DEBUG'  # INFO
+# https://api2d.com/doc/doc
+# openai_api_base = 'https://openai.api2d.net/v1'
+# openai_api_key = 'fk198300-ggvcjDROuAD22IXOc0jolbDpZXMlcegr'
+#openai_api_base = 'https://api.pawan.krd/v1'
+#openai_api_key = 'pk-VVsxGUhsbwfNQkOWYqkTxhVryrBcepKWjIfRZOpzTmKAmoaV' # discord ni126ni@gmail.com
 openai_api_base = 'https://api.openai.com/v1'
 openai_api_key = 'sk-toKUib5xiW3BlbkFJKx6aXIQv3NkFjhRP3rdc' # openai
 # openai_proxy_enable = True

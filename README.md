@@ -24,6 +24,6 @@ OCR功能：
 3. 添加配置信息：复制 `config-template.py` 为 `config.py`，修改里面的配置：
    1. 百度OCR的Api key和Api secret
    2. ChatGPT的api key，提供了3种示例（api2d（国内可访问，收费，支持国内付费方式）、pawan（可国内访问，免费但不稳定）、openapi官方（国内需科学上网，需要设置代理）），选择其中一种即可。
-   3. 企业微信接收消息配置, 设置完成后启动程序（第4步）做URL验证。替换URL域名为你自己的服务器地址，注意是http还是https，如图所示： ![](images/wecom-app-receive-message1.png) ![](images/wecom-app-receive-message.png)
+   3. 企业微信接收消息配置, 设置完成后启动程序（参考第4步）做URL验证。替换URL域名为你自己的服务器地址，注意是http还是https，如图所示： ![](images/wecom-app-receive-message1.png) ![](images/wecom-app-receive-message.png)
    4. 企业微信应用添加可信IP, 如下图所示； ![](images/wecom-app-ip-whitelist.png)
 4. 启动程序：`python main.py`
